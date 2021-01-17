@@ -19,6 +19,8 @@ class Config:
     SECRET_KEY = "testkey"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     LOG_FILE = "api.log"  # where logs are outputted to
+    STATIC_FOLDER = f"{os.getenv('APP_FOLDER')}/api/static"
+    MEDIA_FOLDER = f"{os.getenv('APP_FOLDER')}/api/media"
 
 
 class DevelopmentConfig(Config):
@@ -43,8 +45,6 @@ class ProductionConfig(Config):
 
     Requires the environment variable `FLASK_ENV=prod`
     """
-    STATIC_FOLDER = f"{os.getenv('APP_FOLDER')}/project/static"
-    MEDIA_FOLDER = f"{os.getenv('APP_FOLDER')}/project/media"
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "DATABASE_URL"
     )  # you may do the same as the development config but this currently gets the database URL from an env variable
