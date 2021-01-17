@@ -1,34 +1,20 @@
-# Dockerizing Flask with Postgres, Gunicorn, and Nginx
+# Local Image Repository with AI-assisted Face Tagging
 
-## Want to learn how to build this?
+## Description
 
-Check out the [post](https://testdriven.io/blog/dockerizing-flask-with-postgres-gunicorn-and-nginx).
+* This software scans allows you to tag the people you find in an image folder, assisted by a Neural Network that continuously improves its accuracy.
 
-## Want to use this project?
+## Features
 
-### Development
+* Images remain on your local computer.
+* AI model runs locally and does not access the internet.
+* Because software runs on local network, everyone connected to the network can contribute to annotating faces.
+* AI model improves as users annotate images.
+* You can add a new person from the UI or **Optional** by dropping their face in a special folder: `.known_people`.
+* **Optional**: Users can use 1 or multiple image repositories
 
-Uses the default Flask development server.
+## Use cases
 
-1. Rename *.env.dev-sample* to *.env.dev*.
-1. Update the environment variables in the *docker-compose.yml* and *.env.dev* files.
-1. Build the images and run the containers:
-
-    ```sh
-    $ docker-compose up -d --build
-    ```
-
-    Test it out at [http://localhost:5000](http://localhost:5000). The "web" folder is mounted into the container and your code changes apply automatically.
-
-### Production
-
-Uses gunicorn + nginx.
-
-1. Rename *.env.prod-sample* to *.env.prod* and *.env.prod.db-sample* to *.env.prod.db*. Update the environment variables.
-1. Build the images and run the containers:
-
-    ```sh
-    $ docker-compose -f docker-compose.prod.yml up -d --build
-    ```
-
-    Test it out at [http://localhost:1337](http://localhost:1337). No mounted folders. To apply changes, the image must be re-built.
+* Event organizers who want to share photos with event participants.
+* Enterprise that must host everything locally and cannot use cloud providers for their face-tagging features.
+* People who want to enable face-based search in their own image repository.

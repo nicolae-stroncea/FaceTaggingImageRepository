@@ -3,7 +3,9 @@ version: '3.7'
 services:
   web:
     build: ./services/web
-    command: python manage.py run -h 0.0.0.0
+    # command: python manage.py run -h 0.0.0.0
+    # command: bash -c 'while !</dev/tcp/db/5432; do sleep 3; done; bash /usr/src/app/scripts/docker_script.sh'
+    command: bash -c 'bash /usr/src/app/scripts/docker_script.sh'
     volumes:
       - ./services/web/:/usr/src/app/
     ports:
@@ -16,10 +18,13 @@ services:
     image: postgres:12-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=hello_flask
-      - POSTGRES_PASSWORD=hello_flask
-      - POSTGRES_DB=hello_flask_dev
+    env_file:
+      - ./.env.dev.db
+
+    # environment:
+      # - POSTGRES_USER=hello_flask
+      # - POSTGRES_PASSWORD=hello_flask
+      # - POSTGRES_DB=hello_flask_dev
 
 volumes:
   postgres_data:
