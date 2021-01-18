@@ -31,7 +31,7 @@ The challenges for this project are around efficiently managing a large number o
  In order to facilitate these requirements, several design choices are made:
  
  * The above are separated into different services. This modularity simplifies the logic of the backend, and allows for the potential to scale each component separately and based on its needs. The AI Components(*FaceDetector* and *FaceEmbedder*) are especially heavy on resources. They can run locally, but they can also be deployed to remote servers with much more powerful CPUs or GPUs(which are recommended for faster inference). 
- * The database is a separate server that all of the services can call to and get the most up to data information. This simplifies the communication between services.
+ * The database is a separate server that all of the services can call to and get the most up to data information. This simplifies the communication between services and reduces number of API calls between different micro-services.
  * The database handles paths to images instead of storing the images themselves. This has numerous advantages:
    * It significantly reduces the size of each individual query and therefore makes requests to the database significantly faster. This is important as the database can have a lot of requests made from different components at the same time. 
    * It gives a user the decision of where to store the images. The user can have the images locally and have the entire software runnning locally. Alternatively they can also save the images in the cloud, such as in an S3 bucket, and simply give the backend server the repository location and access rights.
