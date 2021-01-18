@@ -2,7 +2,7 @@
 
 ## Description
 
-* This software is designed to build an image repository of your photos and detect all of the people in them. You can also manually tag the people it finds, and your changes help the Neural Network improve its next predictions.
+This software is designed to build an image repository of your photos and detect all of the people in them. You can also manually tag the people it finds, and your changes help the Neural Network improve its next predictions.
 
 ## Use cases
 
