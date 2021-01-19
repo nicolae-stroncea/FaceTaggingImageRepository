@@ -8,6 +8,7 @@ services:
     command: bash -c 'bash /usr/src/app/scripts/docker_script.sh'
     volumes:
       - ./services/web/:/usr/src/app/
+      - ../img_repo:/usr/src/img_repo
     ports:
       - 5000:5000
     env_file:
@@ -21,6 +22,7 @@ services:
     env_file:
       - ./.env.dev.db
   facedetector:
+    restart: always
     build: ./services/face_detector
     volumes:
       - ./services/face_detector/:/usr/src/detector/
