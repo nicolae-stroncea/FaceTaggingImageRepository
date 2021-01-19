@@ -20,11 +20,14 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env.dev.db
-
-    # environment:
-      # - POSTGRES_USER=hello_flask
-      # - POSTGRES_PASSWORD=hello_flask
-      # - POSTGRES_DB=hello_flask_dev
+  facedetector:
+    build: ./services/face_detector
+    volumes:
+      - ./services/face_detector/:/usr/src/detector/
+    ports:
+      - 5001:5000
+    environment:
+      FLASK_ENV: dev
 
 volumes:
   postgres_data:
