@@ -5,6 +5,9 @@ from api.core import create_response, serialize_list, logger
 from webargs import fields
 from webargs.flaskparser import use_args
 from pathlib import Path 
+import os
+from api.config import config
+import requests
 
 main = Blueprint("main", __name__, url_prefix="/api")  # initialize blueprint
 
@@ -20,6 +23,7 @@ def add_new_obj(obj):
         db.session.commit()
 
 def add_directories(repo):
+    logger.info("adding directories")
     repo_path = repo.repository_path
     image_paths = []
     extensions = ['.jpg','.JPG']
@@ -32,6 +36,17 @@ def add_directories(repo):
     add_new_obj(images)
     logger.info(image_paths)
 
+def start_scanning(rep_id):
+    logger.info(f"rep_id is: {rep_id}")
+    if rep_id == None:
+        raise Exception("repositoy id must not be none")
+    env = os.environ.get("FLASK_ENV", "dev")
+    face_detector_uri = config[env].FACE_DETECTOR_URI
+    logger.info(f"request to: {face_detector_uri}")
+    data = {
+        "repository_id": rep_id
+    }
+    response = requests.get(f"{face_detector_uri}/start_scan", json=data)
 # Repository
 @main.route("/repository/<int:id>",methods=['GET'])
 def get_repository(id):
@@ -48,6 +63,7 @@ def post_repository(args):
     rep = Repository(**args)
     add_new_obj(rep)
     add_directories(rep)
+    start_scanning(rep.id)
     return create_response(rep.to_dict(), 201)
 
 # Person

@@ -4,14 +4,9 @@ import logging
 from flask import Flask, request
 from flask_cors import CORS
 from api.config import config
+from api.utils.core import all_exception_handler
 
-def all_exception_handler(error: Exception):
-    """Catches and handles all exceptions, add more specific error Handlers.
-    :param Exception
-    :returns Tuple of a Flask Response and int
-    """
-    logger.error(f"error is: {error}")
-    return create_response(message=str(error), status=500)
+
 
 # why we use application factories http://flask.pocoo.org/docs/1.0/patterns/appfactories/#app-factories
 def create_app(test_config=None):

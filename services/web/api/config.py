@@ -32,6 +32,7 @@ class DevelopmentConfig(Config):
     """
 
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite://")
+    FACE_DETECTOR_URI = "http://facedetector:5001"
     DEBUG = True
 
 

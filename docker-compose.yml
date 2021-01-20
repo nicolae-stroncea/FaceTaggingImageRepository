@@ -3,6 +3,7 @@ version: '3.7'
 services:
   web:
     build: ./services/web
+    restart: always
     # command: python manage.py run -h 0.0.0.0
     # command: bash -c 'while !</dev/tcp/db/5432; do sleep 3; done; bash /usr/src/app/scripts/docker_script.sh'
     command: bash -c 'bash /usr/src/app/scripts/docker_script.sh'
@@ -22,10 +23,11 @@ services:
       - ./.env.dev.db
   facedetector:
     build: ./services/face_detector
+    restart: always
     volumes:
       - ./services/face_detector/:/usr/src/detector/
     ports:
-      - 5001:5000
+      - 5001:5001
     environment:
       FLASK_ENV: dev
 

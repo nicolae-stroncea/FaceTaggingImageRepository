@@ -1,7 +1,9 @@
 -i https://pypi.python.org/simple
 flask-cors>=3.0.6
-flask-script==2.0.6
+flask-script>=2.0.6
 flask>=1.0.2
 gunicorn>=19.7.1
-webargs==7.0.1
-numpy==1.19.5
+webargs>=7.0.1
+numpy>=1.19.5
+facenet-pytorch>=2.5.1
+natsort>=7.1.0
