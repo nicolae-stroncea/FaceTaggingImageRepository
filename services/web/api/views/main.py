@@ -4,16 +4,33 @@ from sqlalchemy import and_
 from api.core import create_response, serialize_list, logger
 from webargs import fields
 from webargs.flaskparser import use_args
+from pathlib import Path 
 
 main = Blueprint("main", __name__, url_prefix="/api")  # initialize blueprint
 
 def add_new_obj(obj):
-    db.session.add(obj)
-    db.session.commit()
-    if hasattr(obj, 'id'):
-        logger.info(f"{obj.id}")
-    logger.info(f"{obj.__tablename__}: {obj.to_dict()}")
+    if not isinstance(obj, list):
+        db.session.add(obj)
+        db.session.commit()
+        if hasattr(obj, 'id'):
+            logger.info(f"{obj.id}")
+        logger.info(f"{obj.__tablename__}: {obj.to_dict()}")
+    else:
+        db.session.add_all(obj)
+        db.session.commit()
 
+def add_directories(repo):
+    repo_path = repo.repository_path
+    image_paths = []
+    extensions = ['.jpg','.JPG']
+    for ext in extensions:
+        for path in Path(repo_path).rglob(f"*{ext}"):
+            image_paths.append(str(path))
+    images = []
+    for img_path in image_paths:
+        images.append(Image(image_path=img_path, repository_id=repo.id))
+    add_new_obj(images)
+    logger.info(image_paths)
 
 # Repository
 @main.route("/repository/<int:id>",methods=['GET'])
@@ -29,7 +46,8 @@ def get_repository(id):
 })
 def post_repository(args):
     rep = Repository(**args)
-    add_new_obj(rep) 
+    add_new_obj(rep)
+    add_directories(rep)
     return create_response(rep.to_dict(), 201)
 
 # Person
@@ -57,17 +75,20 @@ def post_image_to_person(args, id):
     # profile_face=True, person_id_by_human, image_id, face_path
     return create_response(img.to_dict(), 201)
 
-@main.route("/image/id/<int:id>", methods=['GET'])
+@main.route("/image/<int:id>", methods=['GET'])
 def get_image(id):
     image = Image.query.filter_by(id=id).first_or_404()
     return create_response(repository.to_dict())
-@main.route("/image/person/id/<int:person_id>", methods=['GET'])
+@main.route("/image/person/<int:person_id>", methods=['GET'])
 def get_images_for_person(person_id):
     return create_response()
+@main.route("/image/repository/<int:repository_id>", methods=['GET'])
+def get_images_for_repository(repository_id):
+    images = Image.query.filter_by(repository_id=repository_id).all()
+    return create_response({"Faces": serialize_list(images)})
 
 #Face
-
-@main.route("/face/id/<int:id>", methods=['GET'])
+@main.route("/face/<int:id>", methods=['GET'])
 def get_face(id):
     face = Face.query.filter_by(id=id).first_or_404()
     return create_response(repository.to_dict())
@@ -90,7 +111,7 @@ def get_unknown_faces():
     faces = Face.query.filter(and_(Face.embedding.isnot(None), Face.person_id_by_human == None)).all()
     return create_response({"Faces":serialize_list(faces)})
 
-@main.route("/face/id/<int:id>/person/id/<int:person_id>", methods=["PATCH"])
+@main.route("/face/<int:id>/person/<int:person_id>", methods=["PATCH"])
 def update_person_for_face(id, person_id):
     face = Face.query.filter_by(id=id).first_or_404()
     face.person_id_by_human = person_id
