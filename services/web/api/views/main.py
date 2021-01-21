@@ -95,7 +95,7 @@ def post_image_to_person(args, id):
 @main.route("/image/<int:id>", methods=['GET'])
 def get_image(id):
     image = Image.query.filter_by(id=id).first_or_404()
-    return create_response(repository.to_dict())
+    return create_response(image.to_dict())
 @main.route("/image/person/<int:person_id>", methods=['GET'])
 def get_images_for_person(person_id):
     return create_response()
@@ -108,7 +108,7 @@ def get_images_for_repository(repository_id):
 @main.route("/face/<int:id>", methods=['GET'])
 def get_face(id):
     face = Face.query.filter_by(id=id).first_or_404()
-    return create_response(repository.to_dict())
+    return create_response(face.to_dict())
 
 @main.route("/face/known", methods=["GET"])
 def get_known_faces():
@@ -135,3 +135,10 @@ def update_person_for_face(id, person_id):
     db.session.commit()
     logger.info(face.id)
     return create_response(face.to_dict())
+
+@main.route("/face/image/<int:image_id>", methods=["GET"])
+def get_faces_for_image(image_id):
+    image = Image.query.filter_by(id=image_id).first_or_404()
+    faces = image.faces
+    logger.info(f"faces: {serialize_list(faces)}")
+    return create_response({"faces": serialize_list(faces)})
