@@ -1,18 +1,28 @@
 
 from flask import Blueprint, request, jsonify
-# from api.core import create_response, serialize_list, logger
 from webargs import fields
 from webargs.flaskparser import use_args
-from api.utils.core import logger
-from api.utils.core import create_response
+from api.utils.core import logger, create_response, serialize_list
 from api.config import config
 from api.utils.FaceDetector import create_faces
 from facenet_pytorch import MTCNN
+from api.models import Repository, Face, Image, Person, db
+from sqlalchemy import and_
 import os
 
 ai = Blueprint("ai", __name__, url_prefix="/")  # initialize blueprint
 scanning = False
 
+def add_new_obj(obj):
+    if not isinstance(obj, list):
+        db.session.add(obj)
+        db.session.commit()
+        if hasattr(obj, 'id'):
+            logger.info(f"{obj.id}")
+        logger.info(f"{obj.__tablename__}: {obj.to_dict()}")
+    else:
+        db.session.add_all(obj)
+        db.session.commit()
 
 
 
@@ -35,5 +45,25 @@ def start_scan(args):
         scanning = True
         logger.info("initializing scanning")
         output_dir = config[env].FACE_OUTPUT_DIR
-        # create_faces(image_paths, repo_path, output_dir)
+        repo = Repository.query.filter_by(id=repository_id).first()
+        images = Image.query.filter(and_(Image.repository_id == repository_id,Image.scanned == False)).all()
+        imagepath_to_id = {}
+        for img in images:
+            imagepath_to_id[img.image_path] = img.id
+        image_paths = list(imagepath_to_id.keys())
+        logger.info(f"repo path is: {repo.repository_path}")
+        logger.info(f"image paths are: {image_paths}")
+        mtcnn = MTCNN(image_size=160, post_process=False, keep_all=True)
+        imagepath_facepath_pairs = create_faces(mtcnn, image_paths, repo.repository_path, output_dir)
+        imageid_facepath_pairs = []
+        for pair in imagepath_facepath_pairs:
+            imageid_facepath_pairs.append((imagepath_to_id[pair[0]],pair[1]))
+        logger.info(f"imagepath_facepath_pairs: {imagepath_facepath_pairs}")
+        logger.info(f"imageid_facepath_pairs: {imageid_facepath_pairs}")
+        faces = []
+        for pair in imageid_facepath_pairs:
+            faces.append(Face(image_id=pair[0], face_path=pair[1]))
+        add_new_obj(faces)
+        logger.info(f"added: {serialize_list(faces)}")
+
     return create_response()

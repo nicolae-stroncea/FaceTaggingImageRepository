@@ -15,21 +15,21 @@ services:
       - ./.env.dev
     depends_on:
       - db
+  facedetector:
+    build: ./services/face_detector
+    # restart: always
+    volumes:
+      - ./services/face_detector/:/usr/src/detector/
+    ports:
+      - 5001:5001
+    env_file:
+      - ./.env.dev
   db:
     image: postgres:12-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env.dev.db
-  facedetector:
-    build: ./services/face_detector
-    restart: always
-    volumes:
-      - ./services/face_detector/:/usr/src/detector/
-    ports:
-      - 5001:5001
-    environment:
-      FLASK_ENV: dev
 
 volumes:
   postgres_data:

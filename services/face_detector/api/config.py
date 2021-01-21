@@ -5,11 +5,14 @@ import os
 class Config:
     LOG_FILE = "api.log"  # where logs are outputted to
     FACE_OUTPUT_DIR = ".faces"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite://")
+
 class DevelopmentConfig(Config):
-    pass
+    DEBUG = True
 
 class ProductionConfig(Config):
-    pass
+    DEBUG = False
 
 
 

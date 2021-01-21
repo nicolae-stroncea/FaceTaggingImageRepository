@@ -9,6 +9,7 @@ from torchvision import transforms
 from pathlib import Path
 import os
 from facenet_pytorch import MTCNN
+from api.utils.core import logger
 
 
 post_process = False
@@ -36,34 +37,46 @@ class CustomDataSet(Dataset):
         return (tensor_image, str(self.img_paths[idx]))
 
 
-
+def format_path_for_repeats(img_path,oldvalue, newvalue):
+    '''Used to replace some values in string path of file(from right side),
+    and to change extension type to png(non-compressible)'''
+    x = img_path.rfind(oldvalue)
+    if x == -1:
+        raise Exception("did not find index")
+    replace_from_right_side = img_path[:x] + newvalue + img_path[x+len(oldvalue):] 
+    return change_extension(replace_from_right_side)
 def collate_fn(x):
     return x[0]
 def create_dataset(repo_path, image_paths, transform=None, num_workers=0, batch_size=batch_size):
+    logger.info("create dataset")
     dataset = CustomDataSet(main_dir=repo_path, all_imgs_paths=image_paths, transform=transform)
     loader = DataLoader(dataset, num_workers=num_workers,collate_fn=collate_fn,batch_size=batch_size)
     return dataset, loader
 def change_extension(old):
     return os.path.splitext(old)[0]+'.png'
-def get_face_path(path):
+def get_face_path(path, repo_path, output_dir):
+    logger.info("get_face_path")
+    #since a file might be in some directory structure replace / with _
     save_to_path = str(Path(repo_path) / output_dir / path.replace('/','_'))
     counter  = 0
-    save_to_path = change_extension(save_to_path.replace(".",f"_{counter}."))
+    save_to_path = format_path_for_repeats(save_to_path, ".", f"_{counter}.")
     path_exists = Path(save_to_path).exists()
     while path_exists:
-        save_to_path = change_extension(save_to_path.replace(f"_{counter}.", f"_{counter+1}."))
+        save_to_path = format_path_for_repeats(save_to_path, f"_{counter}.", f"_{counter+1}.")
         path_exists = Path(save_to_path).exists()
         counter+=1
+    logger.info(f"save_to_path final is: {save_to_path}")
     return save_to_path
 
-def detect_faces(mtcnn,dataset,loader):
+def detect_faces(mtcnn,dataset,loader, repo_path, output_dir):
+    logger.info("detect_faces")
     img_paths = []
     face_paths = []
     faces = []
     for ii, _ in enumerate(loader):
         img, path = _
         try:
-            with torch.no_grad():             
+            with torch.no_grad():
                 found_faces, prob = mtcnn(img, return_prob=True)
             if found_faces is not None:
                 faces.extend(found_faces)
@@ -73,7 +86,7 @@ def detect_faces(mtcnn,dataset,loader):
                 for a_face in found_faces:
                     obj = np.moveaxis(a_face.cpu().numpy().astype(np.uint8),0,2)
                     im = Image.fromarray(obj)
-                    new_path = get_face_path(path)
+                    new_path = get_face_path(path, repo_path, output_dir)
                     im.save(new_path)
                     without_repo = str(Path(str(new_path).replace(repo_path, "")))
                     face_paths.append(without_repo)
@@ -85,15 +98,21 @@ def detect_faces(mtcnn,dataset,loader):
     return (faces, img_paths, face_paths)
 
 
-def create_faces(image_paths, repo_path, output_dir=".faces"):
-    if (Path(repo_path) / output_dir).exists():
-        shutil.rmtree((Path(repo_path) / output_dir))
+def create_faces(mtcnn, image_paths, repo_path, output_dir=".faces"):
+    logger.info("create_faces")
+    logger.info(f"image paths is: {image_paths}")
+    logger.info(f"repo path is: {repo_path}")
+    logger.info(f"output_dir is {output_dir}")
+    mtcnn.eval()
+    if os.environ.get("FLASK_ENV", "dev") == "dev":
+        logger.info(f"deleting {output_dir}")
+        if (Path(repo_path) / output_dir).exists():
+            shutil.rmtree((Path(repo_path) / output_dir))
     (Path(repo_path) / output_dir).mkdir(parents=True, exist_ok=True)
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     train_dataset, train_loader = create_dataset(repo_path, image_paths)
-    mtcnn = MTCNN(image_size=image_size,post_process=post_process, keep_all=True, device=device).eval()
-    faces, faces_img_path, face_paths = detect_faces(mtcnn,train_dataset,train_loader)
-    return faces_img_path, face_paths, faces
+    faces, faces_img_path, face_paths = detect_faces(mtcnn,train_dataset,train_loader, repo_path, output_dir)
+    return list(zip(faces_img_path, face_paths))
 
 if __name__ == "__main__":
     # repo_path="photos/seniors_hra/"

@@ -29,7 +29,8 @@ def add_directories(repo):
     extensions = ['.jpg','.JPG']
     for ext in extensions:
         for path in Path(repo_path).rglob(f"*{ext}"):
-            image_paths.append(str(path))
+            formatted_path = Path(str(path).replace(repo_path, ""))
+            image_paths.append(str(formatted_path))
     images = []
     for img_path in image_paths:
         images.append(Image(image_path=img_path, repository_id=repo.id))

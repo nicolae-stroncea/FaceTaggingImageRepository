@@ -41,6 +41,10 @@ def create_app(test_config=None):
     # root = logging.getLogger("core")
     # root.addHandler(strm)
 
+    # register sqlalchemy to this app
+    from api.models import db
+    db.init_app(app)  # initialize Flask SQLALchemy with this flask app
+
 
     # import and register blueprints
     from api.views import ai
