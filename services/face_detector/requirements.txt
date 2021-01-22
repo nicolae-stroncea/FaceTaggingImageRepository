@@ -10,3 +10,5 @@ natsort==7.1.0
 torch==1.7.1
 psycopg2-binary==2.8.6
 flask-sqlalchemy==2.3.2
+redis==3.5.3
+rq==1.7.0
