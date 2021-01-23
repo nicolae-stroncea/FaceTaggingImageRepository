@@ -1,55 +1,34 @@
 
 import os
 import logging
-from flask import Flask, request
-from flask_cors import CORS
+from logging import StreamHandler
+from logging import FileHandler
 from api.config import config
-from api.utils.core import all_exception_handler
 
 
+env = os.getenv('FLASK_ENV')
+log_file = config[env].LOG_FILE
 
-# why we use application factories http://flask.pocoo.org/docs/1.0/patterns/appfactories/#app-factories
-def create_app(test_config=None):
-    """
-    The flask application factory. To run the app somewhere else you can:
-    ```
-    from api import create_app
-    app = create_app()
+# Create the Logger
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
 
-    if __main__ == "__name__":
-        app.run()
-    """
-    app = Flask(__name__)
+# Create the Handler for logging data to a file
+logger_handler = FileHandler(log_file)
+logger_handler.setLevel(logging.INFO)
 
-    CORS(app)  # add CORS
+#Create the Handler for logging data to console.
+console_handler = StreamHandler()
+console_handler.setLevel(logging.INFO)
 
-    env = os.environ.get("FLASK_ENV", "dev")
-    app.config.from_object(config[env])
-    formatter = logging.Formatter("%(asctime)s: %(levelname)s in [%(module)s: %(lineno)d]: %(message)s")
-    if app.config.get("LOG_FILE"):
-        fh = logging.FileHandler(app.config.get("LOG_FILE"))
-        fh.setLevel(logging.DEBUG)
-        fh.setFormatter(formatter)
-        app.logger.addHandler(fh)
+# Create a Formatter for formatting the log messages
+logger_formatter = logging.Formatter('%(filename)s %(funcName)s %(lineno)d: %(message)s')
+# logger_formatter = logging.Formatter("%(asctime)s: %(levelname)s in [%(module)s: %(lineno)d]: %(message)s")
 
-    strm = logging.StreamHandler()
-    strm.setLevel(logging.DEBUG)
-    strm.setFormatter(formatter)
-    app.logger.addHandler(strm)
-    app.logger.setLevel(logging.DEBUG)
+# Add the Formatter to the Handler
+logger_handler.setFormatter(logger_formatter)
+console_handler.setFormatter(logger_formatter)
 
-    # root = logging.getLogger("core")
-    # root.addHandler(strm)
-
-    # register sqlalchemy to this app
-    from api.models import db
-    db.init_app(app)  # initialize Flask SQLALchemy with this flask app
-
-
-    # import and register blueprints
-    from api.views import ai
-    app.register_blueprint(ai.ai)
-    # register error Handler
-    app.register_error_handler(Exception, all_exception_handler)
-
-    return app
+# Add the Handler to the Logger
+root_logger.addHandler(logger_handler)
+root_logger.addHandler(console_handler)

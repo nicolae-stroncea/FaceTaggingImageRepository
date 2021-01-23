@@ -1,8 +1,5 @@
 
-from flask import Blueprint, request, jsonify
-from webargs import fields
-from webargs.flaskparser import use_args
-from api.utils.core import logger, create_response, serialize_list
+from api.utils.core import serialize_list
 from api.config import config
 from api.utils.FaceDetector import create_faces
 from facenet_pytorch import MTCNN
@@ -12,9 +9,9 @@ from rq import Queue, Connection
 import redis
 import os
 import math
+import logging
 
-ai = Blueprint("ai", __name__, url_prefix="/")  # initialize blueprint
-scanning = False
+logger = logging.getLogger(__name__)
 
 def add_new_obj(obj):
     if not isinstance(obj, list):
@@ -62,29 +59,3 @@ def detect_faces(repository_id):
             image.scanned = True
         db.session.commit()
         logger.info(f"added: {serialize_list(faces)}")
-
-
-
-
-@ai.route("/", methods=['GET'])
-def get():
-    logger.info("getting resources")
-    return jsonify({"test":"hello world"}), 200
-
-@ai.route("/start_scan", methods=['GET'])
-@use_args({
-    "repository_id": fields.Int(required=True),
-})
-def start_scan(args):
-    repository_id = args["repository_id"]
-    logger.info(f"rep_id is: {repository_id}")
-    global scanning
-    env = os.environ.get("FLASK_ENV", "dev")
-    if not scanning:
-        scanning = True
-        with Connection(redis.from_url(os.getenv("REDIS_URL"))):
-            logger.info("sending task")
-            q = Queue()
-            task = q.enqueue(detect_faces, repository_id)
-    logger.info("sending response")
-    return create_response()

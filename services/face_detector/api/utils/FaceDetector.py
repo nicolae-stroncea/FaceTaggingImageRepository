@@ -9,7 +9,8 @@ from torchvision import transforms
 from pathlib import Path
 import os
 from facenet_pytorch import MTCNN
-from api.utils.core import logger
+import logging
+logger = logging.getLogger(__name__)
 
 
 post_process = False

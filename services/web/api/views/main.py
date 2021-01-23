@@ -8,6 +8,10 @@ from pathlib import Path
 import os
 from api.config import config
 import requests
+from rq import Queue, Connection
+import redis
+import os
+scanning=False
 
 main = Blueprint("main", __name__, url_prefix="/api")  # initialize blueprint
 
@@ -38,16 +42,20 @@ def add_directories(repo):
     logger.info(image_paths)
 
 def start_scanning(rep_id):
+    global scanning
     logger.info(f"rep_id is: {rep_id}")
     if rep_id == None:
         raise Exception("repositoy id must not be none")
     env = os.environ.get("FLASK_ENV", "dev")
-    face_detector_uri = config[env].FACE_DETECTOR_URI
-    logger.info(f"request to: {face_detector_uri}")
-    data = {
-        "repository_id": rep_id
-    }
-    response = requests.get(f"{face_detector_uri}/start_scan", json=data)
+    if not scanning:
+        scanning = True
+        with Connection(redis.from_url(os.getenv("REDIS_URL"))):
+            logger.info("sending task")
+            queue = os.getenv("DETECTOR_QUEUES","default")
+            q = Queue(queue)
+            task = q.enqueue("api.views.ai.detect_faces", rep_id)
+    logger.info("sending response")
+    return create_response()
 # Repository
 @main.route("/repository/<int:id>",methods=['GET'])
 def get_repository(id):
