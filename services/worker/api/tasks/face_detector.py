@@ -1,28 +1,16 @@
 
-from api.utils.core import serialize_list
+from api.utils.core import serialize_list, add_new_obj
 from api.config import config
 from api.utils.FaceDetector import create_faces
 from facenet_pytorch import MTCNN
-from api.models import Repository, Face, Image, Person, db
+from api.models import Repository, Face, Image, db
 from sqlalchemy import and_
-from rq import Queue, Connection
-import redis
 import os
 import math
 import logging
 
 logger = logging.getLogger(__name__)
 
-def add_new_obj(obj):
-    if not isinstance(obj, list):
-        db.session.add(obj)
-        db.session.commit()
-        if hasattr(obj, 'id'):
-            logger.info(f"{obj.id}")
-        logger.info(f"{obj.__tablename__}: {obj.to_dict()}")
-    else:
-        db.session.add_all(obj)
-        db.session.commit()
 
 def detect_faces(repository_id):
     logger.info("initializing scanning")
@@ -52,7 +40,7 @@ def detect_faces(repository_id):
         faces = []
         for pair in imageid_facepath_pairs:
             faces.append(Face(image_id=pair[0], face_path=pair[1]))
-        add_new_obj(faces)
+        add_new_obj(faces, db)
         # set the images to scanned
         logger.info("setting images to scanned")
         for image in images:

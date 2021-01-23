@@ -53,7 +53,7 @@ def start_scanning(rep_id):
             logger.info("sending task")
             queue = os.getenv("DETECTOR_QUEUES","default")
             q = Queue(queue)
-            task = q.enqueue("api.views.ai.detect_faces", rep_id)
+            task = q.enqueue("api.tasks.face_detector.detect_faces", rep_id)
     logger.info("sending response")
     return create_response()
 # Repository
