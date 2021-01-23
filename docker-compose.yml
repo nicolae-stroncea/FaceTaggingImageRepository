@@ -9,21 +9,39 @@ services:
     command: bash -c 'bash /usr/src/app/scripts/docker_script.sh'
     volumes:
       - ./services/web/:/usr/src/app/
+      - ../img_repo/:/usr/src/img_repo/
     ports:
       - 5000:5000
     env_file:
       - ./.env.dev
+    environment:
+      - APP_TYPE=FLASK_APP
     depends_on:
       - db
-  facedetector:
-    build: ./services/face_detector
-    # restart: always
+      - detector_worker
+      - embedder_worker
+  detector_worker:
+    build: ./services/worker
+    restart: always
     volumes:
-      - ./services/face_detector/:/usr/src/detector/
-    ports:
-      - 5001:5001
+      - ./services/worker/:/usr/src/worker/
+      - ../img_repo/:/usr/src/img_repo/
     env_file:
       - ./.env.dev
+    environment:
+      - QUEUE=detector
+    depends_on:
+      - redis
+  embedder_worker:
+    build: ./services/worker
+    restart: always
+    volumes:
+      - ./services/worker/:/usr/src/worker/
+      - ../img_repo/:/usr/src/img_repo/
+    env_file:
+      - ./.env.dev
+    environment:
+      - QUEUE=embedder
     depends_on:
       - redis
   db:
