@@ -1,6 +1,3 @@
 [submodule "services/web/api/models"]
 	path = services/web/api/models
 	url = git@github.com:nicolae-stroncea/FaceTaggingModels.git
-[submodule "services/face_detector/api/models"]
-	path = services/face_detector/api/models
-	url = git@github.com:nicolae-stroncea/FaceTaggingModels.git
