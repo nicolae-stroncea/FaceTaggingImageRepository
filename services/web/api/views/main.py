@@ -69,6 +69,7 @@ def get_repository(id):
     "repository_type": fields.Str(missing="local")
 })
 def post_repository(args):
+    #TODO: handle case of repository ending. Prefer with /.
     rep = Repository(**args)
     add_new_obj(rep)
     add_directories(rep)

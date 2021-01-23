@@ -29,6 +29,7 @@ class CustomDataSet(Dataset):
         return len(self.img_paths)
 
     def __getitem__(self, idx):
+        #TODO: handle case when image is invalid
         img_loc = Path(self.main_dir) / Path(self.img_paths[idx])
         image = Image.open(str(img_loc)).convert("RGB")
         if self.transform:
@@ -117,7 +118,6 @@ def create_faces(mtcnn, image_paths, repo_path, output_dir=".faces"):
 
 if __name__ == "__main__":
     # repo_path="photos/seniors_hra/"
-    repo_path = "/home/nick/Programming/img_repo"
     output_dir="faces"
 
 

@@ -6,6 +6,6 @@ __pycache
 .env.prod
 .env.prod.db
 services/web/api.log
-services/face_detector/api.log
+services/worker/api.log
 Tasks.md
 DesignChoices.md
