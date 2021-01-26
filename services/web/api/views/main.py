@@ -49,11 +49,18 @@ def start_scanning(rep_id):
     env = os.environ.get("FLASK_ENV", "dev")
     if not scanning:
         scanning = True
+        logger.info("starting face detector")
         with Connection(redis.from_url(os.getenv("REDIS_URL"))):
-            logger.info("sending task")
             queue = os.getenv("DETECTOR_QUEUES","default")
+            logger.info(f"sending task to {queue}")
             q = Queue(queue)
             task = q.enqueue("api.tasks.face_detector.detect_faces", rep_id)
+        logger.info("starting face embedder")
+        with Connection(redis.from_url(os.getenv("REDIS_URL"))):
+            queue = os.getenv("EMBEDDER_QUEUES","default")
+            logger.info(f"sending task to {queue}")
+            q = Queue(queue)
+            task = q.enqueue("api.tasks.face_embedder.embed_faces", rep_id)
     logger.info("sending response")
     return create_response()
 # Repository
