@@ -26,14 +26,15 @@ The challenges for this project are around efficiently managing a large number o
 
 * Running a CPU-intensive AI model (*FaceDetector*) that detects faces from images.
 * Running a CPU-intensive AI model (*FaceEmbedder*) that converts faces to embeddings (i.e representing the face in a lower dimensional space, a vector of 512 real numbers).
-* Comparing the embedding of a face (*EmbeddingsMatcher*) against the embeddings of all known people to find the closest pair of embeddings, and therefore the best guess for which person a face represents.
+* Comparing the embedding of a face (*FaceMatcher*) against the embeddings of all known people to find the closest pair of embeddings, and therefore the best guess for which person a face represents.
 * Serving different requests to a user (*Backend API*), such as: serving individual faces when a user wants to tag faces, serving all images that match an individual, and many others.
 * Designing a database efficiently as it needs to handle requests from the *FaceDetector*, the *FaceEmbedder*, the *EmbeddingsMatcher*, and the *Backend API*.
  
  In order to facilitate these requirements, several design choices are made:
  
- * The above are separated into different services. This modularity simplifies the logic of the backend, and allows for the potential to scale each component separately and based on its needs. The AI Components(*FaceDetector* and *FaceEmbedder*) are especially heavy on resources. They can run locally, but they can also be deployed to remote servers with much more powerful CPUs or GPUs(which are recommended for faster inference). 
- * The database is a separate server that all of the services can call to and get the most up to data information. This simplifies the communication between services and reduces number of API calls between different micro-services.
+ * The above are separated into different services, each in a different (Docker) container. This modularity simplifies the logic of the backend, and allows for the potential to scale each service separately and based on its needs. The AI Components(*FaceDetector* and *FaceEmbedder*) are especially heavy on resources. They can run locally, but they can also be deployed to remote servers with much more powerful CPUs or GPUs(which are recommended for faster inference). 
+ * *FaceDetector*, *FaceEmbedder*, and *FaceMatcher* are service workers that consume jobs written to Redis (the message broker) by the *Backend API*. This allows most queries to the *Backend API* to be non-blocking, and makes the 3 services scaleable, since multiple workers of each type can be easily spun up. 
+ * The database is a separate server that all of the services use to read and write information to.
  * The database handles paths to images instead of storing the images themselves. This has numerous advantages:
    * It significantly reduces the size of each individual query and therefore makes requests to the database significantly faster. This is important as the database can have a lot of requests made from different components at the same time. 
    * It gives a user the decision of where to store the images. The user can have the images locally and have the entire software runnning locally. Alternatively they can also save the images in the cloud, such as in an S3 bucket, and simply give the backend server the repository location and access rights.
