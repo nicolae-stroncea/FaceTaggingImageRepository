@@ -18,7 +18,9 @@ This software is designed to build an image repository of your photos and detect
 * AI model runs locally and does not access the internet.
 * AI model improves as users annotate images.
 
-## Design Decisions
+## Design
+
+![Design Diagram](assets/diagram.png)
 
 The challenges for this project are around efficiently managing a large number of different tasks that the backend needs to perform. These are:
 
