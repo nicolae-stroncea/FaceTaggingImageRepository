@@ -106,10 +106,6 @@ def create_faces(mtcnn, image_paths, repo_path, output_dir=".faces"):
     logger.info(f"repo path is: {repo_path}")
     logger.info(f"output_dir is {output_dir}")
     mtcnn.eval()
-    if os.environ.get("FLASK_ENV", "dev") == "dev":
-        logger.info(f"deleting {output_dir}")
-        if (Path(repo_path) / output_dir).exists():
-            shutil.rmtree((Path(repo_path) / output_dir))
     (Path(repo_path) / output_dir).mkdir(parents=True, exist_ok=True)
     # device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     train_dataset, train_loader = create_dataset(repo_path, image_paths)

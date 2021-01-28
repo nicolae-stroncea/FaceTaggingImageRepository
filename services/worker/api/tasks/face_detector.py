@@ -20,7 +20,9 @@ def detect_faces(repository_id):
     # get all images that are not scanned
     all_images = Image.query.filter(and_(Image.repository_id == repository_id,Image.scanned == False)).all()
     num_iterations = math.ceil(len(all_images)/5) # will do 5 images per batch before sending to db
+    logging.info(f"number of iterations is: {num_iterations}")
     for i in range(num_iterations):
+        logger.info("new iteration")
         images = all_images[(i*5):(i+1)*5]
         considering_ids = [img.id for img in images]
         logger.info(f"considering ids: {considering_ids}")
@@ -47,3 +49,4 @@ def detect_faces(repository_id):
             image.scanned = True
         db.session.commit()
         logger.info(f"added: {serialize_list(faces)}")
+    logging.info("finished detecting faces")

@@ -11,10 +11,10 @@ import time
 
 logger = logging.getLogger(__name__)
 
-sleep_time = 6
-max_checks = 10
+sleep_time = 10
+max_checks = 12
 batch_size = 8
-
+per_iteration = 5
 
 def embed_faces(repository_id):
     logger.info("initializing embedding")
@@ -30,7 +30,7 @@ def embed_faces(repository_id):
             logger.info(f"{len(all_faces)} num faces found")
             embedding_ids = [f.id for f in all_faces]
             logger.info(f"getting embeddings for: {embedding_ids}")
-            k = 5
+            k = per_iteration
             num_iterations = math.ceil(len(all_faces)/k) # will do k faces per batch before sending to db
             # we want to do this because we're only sending embedded faces to user(for guessing)
             for i in range(num_iterations):

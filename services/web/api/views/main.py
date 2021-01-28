@@ -53,13 +53,13 @@ def start_scanning(rep_id):
         with Connection(redis.from_url(os.getenv("REDIS_URL"))):
             queue = os.getenv("DETECTOR_QUEUES","default")
             logger.info(f"sending task to {queue}")
-            q = Queue(queue)
+            q = Queue(queue, default_timeout=1800)
             task = q.enqueue("api.tasks.face_detector.detect_faces", rep_id)
         logger.info("starting face embedder")
         with Connection(redis.from_url(os.getenv("REDIS_URL"))):
             queue = os.getenv("EMBEDDER_QUEUES","default")
             logger.info(f"sending task to {queue}")
-            q = Queue(queue)
+            q = Queue(queue, default_timeout=1800)
             task = q.enqueue("api.tasks.face_embedder.embed_faces", rep_id)
     logger.info("sending response")
     return create_response()
